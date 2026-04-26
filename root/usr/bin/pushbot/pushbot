@@ -1183,7 +1183,7 @@ function send(){
 }
 
 function send_shell(){
-	echo "`date "+%Y-%m-%d %H:%M:%S"` 【自定义发送】创建自定义发送任务" >> ${logfile}
+	# echo "`date "+%Y-%m-%d %H:%M:%S"` 【自定义发送】创建自定义推送任务" >> ${logfile}
 	pushbot_disturb;local send_disturb=$?
 	get_config "send_title" "router_status" "router_temp" "router_wan" "client_list" "google_check_timeout"
 	local send_title="$shell_send_title"
@@ -1201,7 +1201,7 @@ function send_shell(){
 	[ ! -z "$device_name" ] && local send_title="【$device_name】${send_title}"
 	[ -z "$send_content" ] && local send_content="${str_splitline}${str_title_start} 我遇到了一个难题${str_title_end}${str_linefeed}${str_tab}定时发送选项错误，你没有选择需要发送的项目，该怎么办呢${str_splitline}"
 	[ "$send_disturb" -eq "0" ] && diy_send "${send_title}" "${send_content}" "${jsonpath}" >/dev/null 2>&1
-	[ $? -eq 1 ] && echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】定时推送失败，请检查网络或设置信息" >> ${logfile} || echo "`date "+%Y-%m-%d %H:%M:%S"` ${disturb_text}定时推送任务完成" >> ${logfile}
+	[ $? -eq 1 ] && echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】自定义推送任务失败，请检查网络或设置信息  推送标题：\"${send_title}\"  推送内容：\"${send_content}\"" >> ${logfile} || echo "`date "+%Y-%m-%d %H:%M:%S"` ${disturb_text}自定义推送任务完成  推送标题：\"${send_title}\"  推送内容：\"${send_content}\"" >> ${logfile}
 	deltemp
 }
 
