@@ -113,7 +113,7 @@ function down_oui(){
 	[ $logrow -lt "10" ] && rm -f ${oui_base} >/dev/null 2>&1
 	if [ ! -z "$oui_data" ] && [ "$oui_data" -ne "3" ] && [ ! -f ${oui_base} ]; then
 		echo "`date "+%Y-%m-%d %H:%M:%S"` 【初始化】设备MAC厂商信息不存在，重新下载" >> ${logfile}
-		wget --no-check-certificate -t 3 -T 15 -O ${dir}oui.txt https://standards-oui.ieee.org/oui/oui.txt >/dev/null 2>&1
+		wget --no-check-certificate -t 3 -T 15 -O ${dir}oui.txt https://linuxnet.ca/ieee/oui.txt >/dev/null 2>&1
 		if [ -f ${dir}oui.txt ] && [ "$oui_data" -eq "1" ]; then
 			cat ${dir}oui.txt|grep "base 16"|grep -i "apple\|aruba\|asus\|autelan\|belkin\|bhu\|buffalo\|cctf\|cisco\|comba\|datang\|dell\|dlink\|dowell\|ericsson\|fast\|feixun\|\
 fiberhome\|fujitsu\|grentech\|h3c\|hisense\|hiwifi\|honghai\|honghao\|hp\|htc\|huawei\|intel\|jinli\|jse\|lenovo\|lg\|liteon\|malata\|meizu\|mercury\|meru\|moto\|netcore\|\
@@ -222,7 +222,7 @@ function getname(){
 	done
 	( ! echo "$tmp_name"|grep -q -w "unknown\|*" ) && [ ! -z "$tmp_name" ] && echo "$tmp_name" && return || unset tmp_name # 为unknown时重新读取
 	[ -f "$oui_base" ] && local tmp_name=$(cat $oui_base|grep -i $(echo "$2"|cut -c 1,2,4,5,7,8)|sed -nr 's#^.*16)..(.*)#\1#gp'|sed 's/ /_/g')
-	[ ! -z "$oui_data" ] && [ "$oui_data" -eq "4" ] && local tmp_name=$(curl -sS "https://standards-oui.ieee.org/oui/oui.txt"|grep -i $(echo "$2"|cut -c 1,2,4,5,7,8)|sed -nr 's#^.*16)..(.*)#\1#gp'|sed 's/ /_/g')
+	[ ! -z "$oui_data" ] && [ "$oui_data" -eq "4" ] && local tmp_name=$(curl -sS "http://standards-oui.ieee.org/oui.txt"|grep -i $(echo "$2"|cut -c 1,2,4,5,7,8)|sed -nr 's#^.*16)..(.*)#\1#gp'|sed 's/ /_/g')
 	[ -z "$tmp_name" ] && local tmp_name="unknown"
 	echo "$tmp_name"
 }
@@ -392,7 +392,7 @@ function cut_str {
 		temp_length=`expr $temp_length + 1`
 	done
 	temp_length=`expr $temp_length - 1`
-	echo $(echo "$1"|cut -c -$temp_length)"..."
+	echo $(echo "$1"|cut -c -$temp_length)"*"
 }
 
 # 随机数
@@ -1182,6 +1182,31 @@ function send(){
 	deltemp
 }
 
+
+function send_shell(){
+	echo "`date "+%Y-%m-%d %H:%M:%S"` 【自定义发送】创建自定义发送任务" >> ${logfile}
+	pushbot_disturb;local send_disturb=$?
+	get_config "send_title" "router_status" "router_temp" "router_wan" "client_list" "google_check_timeout"
+	local send_title="$shell_send_title"
+	[ -z "$send_title" ] && local send_title="$1"
+	[ -z "$send_title" ] && local send_title="默认提示："
+	
+	local send_content="$shell_send_content"
+	[ -z "$send_content" ] && local send_content="$2"
+	
+	
+	[ -z "$google_check_timeout" ] && local google_check_timeout="10"
+	#[ ! -z "$1·" ] && local send_title="发送测试：" && local send_content="${str_splitline}${str_title_start}内容1${str_title_end}${str_linefeed}${str_tab}设备1${str_linefeed}${str_tab}设备2${str_splitline}${str_title_start}内容2${str_title_end}${str_linefeed}${str_tab}设备3${str_linefeed}${str_tab}设备4"
+	[ -z "$1" ] && [ ! -z "$client_list" ] && [ "$client_list" -eq "1" ] && > ${dir}send_enable.lock && pushbot_first &
+
+	[ ! -z "$device_name" ] && local send_title="【$device_name】${send_title}"
+	[ -z "$send_content" ] && local send_content="${str_splitline}${str_title_start} 我遇到了一个难题${str_title_end}${str_linefeed}${str_tab}定时发送选项错误，你没有选择需要发送的项目，该怎么办呢${str_splitline}"
+	[ "$send_disturb" -eq "0" ] && diy_send "${send_title}" "${send_content}" "${jsonpath}" >/dev/null 2>&1
+	[ $? -eq 1 ] && echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】定时推送失败，请检查网络或设置信息" >> ${logfile} || echo "`date "+%Y-%m-%d %H:%M:%S"` ${disturb_text}定时推送任务完成" >> ${logfile}
+	deltemp
+}
+
+
 # 初始化
 read_config
 deltemp
@@ -1200,6 +1225,7 @@ unset i
 # 启动参数
 if [ "$1" ] ;then
 	[ $1 == "send" ] && send
+	[ $1 == "send-shell" ] && send_shell $2 $3
 	[ $1 == "soc" ] && echo `soc_temp` > ${dir}soc_tmp
 	[ $1 == "client" ] && get_client
 	[ $1 == "test" ] && send test
