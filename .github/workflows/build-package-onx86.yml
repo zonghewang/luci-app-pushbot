@@ -27,7 +27,7 @@ env:
   PackageSource_URL: https://github.com/zonghewang/luci-app-pushbot
   UPLOAD_Package: true
   UPLOAD_COWTRANSFER: false
-  UPLOAD_WETRANSFER: true
+  UPLOAD_WETRANSFER: false
   UPLOAD_RELEASE: true
   TZ: Asia/Shanghai
   UPLOAD_ZZNAS: false
