@@ -1183,7 +1183,7 @@ function send(){
 }
 
 function send_shell(){
-	# echo "`date "+%Y-%m-%d %H:%M:%S"` 【自定义发送】创建自定义推送任务" >> ${logfile}
+	## echo "`date "+%Y-%m-%d %H:%M:%S"` 【自定义发送】创建自定义推送任务" >> ${logfile}
 	pushbot_disturb;local send_disturb=$?
 	get_config "send_title" "router_status" "router_temp" "router_wan" "client_list" "google_check_timeout"
 	local send_title="$shell_send_title"
